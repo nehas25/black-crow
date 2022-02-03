@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <%- include('../partials/head.ejs') %>
+    <title>Shop Crows</title>
+  </head>
+  <body>
+    <div class="container">
+      <%- include('../partials/header.ejs') %>
+      <div class="row" style="margin-top: 5%">
+        <% for(const crow of allCrows) { %>
+          <div id="<%= crow.htmlId %>" class="one-third column" data-item-id="<%= crow.id %>">
+            <img class="u-max-full-width" src="/images/<%= crow.imgName %>">
+            <h4><%= crow.name %></h4><h5><%= crow.price %></h5>
+            <button class="button-primary">Add To Cart</button>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </body>
+</html>
