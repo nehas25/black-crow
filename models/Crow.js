@@ -9,7 +9,7 @@ class Crow {
   constructor(id, name, price, imgName) {
     this.id = id;
     this.name = name;
-    this.price = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(price);
+    this.price = price;
     this.imgName = imgName;
   }
 

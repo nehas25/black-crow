@@ -7,6 +7,7 @@ router.get('/crows.ejs', (req, res) => {
 
   allCrows.forEach((crow) => {
     crow.htmlId = crow.name.replace(/ /g, '-').toLowerCase().concat('-listing');
+    crow.priceFormatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(crow.price);
   });
 
   res.render('crows/crows', {allCrows: allCrows});

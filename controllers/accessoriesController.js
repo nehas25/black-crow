@@ -7,6 +7,7 @@ router.get('/accessories.ejs', (req, res) => {
 
   allAccessories.forEach((accessory) => {
     accessory.htmlId = accessory.name.replace(/ /g, '-').toLowerCase().concat('-listing');
+    accessory.priceFormatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(accessory.price);
   });
 
   res.render('accessories/accessories', {allAccessories: allAccessories});

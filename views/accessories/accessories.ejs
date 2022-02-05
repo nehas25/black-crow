@@ -4,15 +4,16 @@
     <%- include('../partials/head.ejs') %>
     <title>Shop Crow Accessories</title>
   </head>
-  <body>
+  <body data-page="items">
     <div class="container">
+      <div data-page-items="<%= JSON.stringify(allAccessories) %>"></div>
       <%- include('../partials/header.ejs') %>
       <div class="row" style="margin-top: 5%">
         <% for(const accessory of allAccessories) { %>
           <div id="<%= accessory.htmlId %>" class="one-third column" data-item-id="<%= accessory.id %>">
             <img class="u-max-full-width" src="/images/<%= accessory.imgName %>">
-            <h4><%= accessory.name %></h4><h5><%= accessory.price %></h5>
-            <button class="button-primary">Add To Cart</button>
+            <h4><%= accessory.name %></h4><h5><%= accessory.priceFormatted %></h5>
+            <button class="button-primary add-to-cart-btn" data-price="<%= accessory.price %>">Add To Cart</button>
           </div>
         <% } %>
       </div>
