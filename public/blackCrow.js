@@ -1,16 +1,19 @@
 class BlackCrow {
+  constructor(storage) {
+    this.storage = storage || window.localStorage;
+  }
 
   createAndGetVisitorId() {
     const visitorId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
       var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
       return v.toString(16);  
     });
-    localStorage.setItem(VISITOR_ID, visitorId);
+    this.storage.setItem(VISITOR_ID, visitorId);
     return visitorId;
   }
 
-  getReferrerInfo() {
-    const queryString = window.location.search;
+  getReferrerInfo(query) {
+    const queryString = query || window.location.search;
     const urlParams = new URLSearchParams(queryString);
     const referrerInfo = {
       utm_source: urlParams.get('utm_source'),
@@ -20,9 +23,9 @@ class BlackCrow {
     return referrerInfo;
   }
 
-  getItemsOnPage() {
+  getItemsOnPage(nodeList) {
     const items = [];
-    const itemsNodeList = document.querySelectorAll("[data-page-items]")[0];
+    const itemsNodeList = nodeList || document.querySelectorAll("[data-page-items]")[0];
     const itemsJson = JSON.parse(itemsNodeList.dataset['pageItems']);
     for(const itemJson of itemsJson) {
       const item = {
@@ -36,8 +39,8 @@ class BlackCrow {
   }
 
   storeHistoryId(historyId) {
-    if(!localStorage.getItem(HISTORY_ID)) {
-      localStorage.setItem(HISTORY_ID, historyId);
+    if(!this.storage.getItem(HISTORY_ID)) {
+      this.storage.setItem(HISTORY_ID, historyId);
     }
   }
 
@@ -48,15 +51,15 @@ class BlackCrow {
     const pageReferrerUrl = document.referrer;
     const userAgent = navigator.userAgent;
     const ipAddr = '1.2.3.4';
-    const visitorId = localStorage.getItem(VISITOR_ID) || this.createAndGetVisitorId();
-    const isLoggedInUser = localStorage.getItem(TOKEN) ? true : false;
+    const visitorId = this.storage.getItem(VISITOR_ID) || this.createAndGetVisitorId();
+    const isLoggedInUser = this.storage.getItem(TOKEN) ? true : false;
     const referrerInfo = this.getReferrerInfo();
     const referrerSource = referrerInfo.utm_source;
     const referrerChannel = referrerInfo.utm_medium;
     const referrerQuery = referrerInfo.utm_term;
-    const historyId = localStorage.getItem(HISTORY_ID) || null;
+    const historyId = this.storage.getItem(HISTORY_ID) || null;
 
-    const postEventBody = {
+    const eventAPIReqObj = {
       site_name: "BLACKCROW",
       page_id: pageId,
       site_country: 'CA',
@@ -78,30 +81,36 @@ class BlackCrow {
     }
 
     if(document.body.dataset.page == 'items') {
-      postEventBody.items = this.getItemsOnPage();
+      eventAPIReqObj.items = this.getItemsOnPage();
     }
 
-    console.log('postEventBody' + JSON.stringify(postEventBody));
+    console.log('eventAPIReqObj' + JSON.stringify(eventAPIReqObj));
 
-    return postEventBody;
+    return eventAPIReqObj;
   }
 
-  async callPOSTEvents() {
-    const postEventBody = this.generateReqObj();
+  async callPOSTEvents(req) {
+    const postEventBody = req || this.generateReqObj();
     const postEventUrl = 'https://api.sandbox.blackcrow.ai/v1/events/view';
-
-    const res = await fetch(`${postEventUrl}`, {
+    try {
+      const res = await fetch(`${postEventUrl}`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json' 
         },
         body: JSON.stringify(postEventBody)
-      })
-      .then((res) => res.json());
+      });
 
-    this.storeHistoryId(res.history_id);
+      if (!res.ok) {
+        throw new Error(res.statusText);
+      }
 
-    return res;
+      const resJson = await res.json();
+      this.storeHistoryId(resJson.history_id);
+      return resJson;
+    } catch(error) {
+      console.error(error);
+    }
   }
 
 }
